@@ -10,9 +10,10 @@
 package openapi
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/bluemon0919/todocore/todo"
 )
 
 // A DefaultApiController binds http requests to an api service and writes the service results to the http response
@@ -45,38 +46,23 @@ func (c *DefaultApiController) Routes() Routes {
 
 // ListGet - 未聴取の番組リストを取得します
 func (c *DefaultApiController) ListGet(w http.ResponseWriter, r *http.Request) {
-
-	//result, err := c.service.ListGet()
-	_, err := c.service.ListGet()
+	result, err := c.service.ListGet()
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-
-	var programs []Program
-	for i := 0; i < 10; i++ {
-		p := Program{
-			Id:     fmt.Sprint(i),
-			Title:  fmt.Sprint("test", i),
-			Detail: fmt.Sprint("detail", i),
-			Url:    "xxxx",
-		}
-		programs = append(programs, p)
-	}
-
+	programs := result.([]todo.ListItem)
 	EncodeJSONResponse(programs, nil, w)
-	//EncodeJSONResponse(result, nil, w)
 }
 
 // ProgramPut - 番組を聴取済みに更新します
 func (c *DefaultApiController) ProgramPut(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	programId := query.Get("programId")
-	result, err := c.service.ProgramPut(programId)
+	programID := query.Get("programId")
+	result, err := c.service.ProgramPut(programID)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-
 	EncodeJSONResponse(result, nil, w)
 }

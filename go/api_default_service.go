@@ -10,30 +10,48 @@
 package openapi
 
 import (
-	"errors"
+	"log"
+	"os"
+
+	"github.com/bluemon0919/todocore/entity"
+	"github.com/bluemon0919/todocore/todo"
 )
 
 // DefaultApiService is a service that implents the logic for the DefaultApiServicer
-// This service should implement the business logic for every endpoint for the DefaultApi API. 
+// This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
+	radioProgramServer *todo.Server
 }
 
 // NewDefaultApiService creates a default api service
 func NewDefaultApiService() DefaultApiServicer {
-	return &DefaultApiService{}
+	srv := &DefaultApiService{}
+	projectID := os.Getenv("PROJECT_ID")
+	if "" == projectID {
+		log.Fatal("PROJECT_ID is not set")
+		return nil
+	}
+	ent := entity.NewDatastore(projectID, "RegistrationData")
+	if ent == nil {
+		log.Fatal("file create error")
+		return nil
+	}
+	srv.radioProgramServer = todo.NewServer(":8080", ent)
+	return srv
 }
 
 // ListGet - 未聴取の番組リストを取得します
 func (s *DefaultApiService) ListGet() (interface{}, error) {
-	// TODO - update ListGet with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'ListGet' not implemented")
+	list, err := s.radioProgramServer.GetList()
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 // ProgramPut - 番組を聴取済みに更新します
 func (s *DefaultApiService) ProgramPut(programId string) (interface{}, error) {
-	// TODO - update ProgramPut with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'ProgramPut' not implemented")
+	err := s.radioProgramServer.PostProgram(programId)
+	return nil, err
 }
